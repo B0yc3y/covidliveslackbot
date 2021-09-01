@@ -1,6 +1,6 @@
 # CovidLive AU Summary Slackbot
 
-This bot is a very simple slackbot that pulls data, summarises and posts up to date COVID stats to a provided slack channel,
+This bot is a very simple slackbot that pulls data, summarises and posts up to date AU COVID stats to a provided slack channel. Sourcing data from https://covidlive.com.au
 
 ## Install
 Assuming you have [virtualenv](https://github.com/pypa/virtualenv) and [pip](https://github.com/pypa/pip) installed the below will setup the requirements.
@@ -26,5 +26,21 @@ export SLACK_BOT_NAME="Slack Bot Name here"
 ```
 
 ## Run me
-`python3 covid_slack_bot.py`
+```shell
+# Locally
+python3 covid_slack_bot.py
+
+# docker
+docker run \
+    -e "SELECTED_CODES=VIC,NSW" \
+    -e "SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN" \
+    -e "SLACK_CHANNEL_NAME=$SLACK_CHANNEL_NAME" \
+    -e "SLACK_BOT_NAME=$SLACK_BOT_NAME" \
+    covidliveslackbot:latest
+```
+
+# Build new image
+```
+docker build -t covidliveslackbot:latest .
+```
 
