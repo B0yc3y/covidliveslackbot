@@ -30,7 +30,15 @@ export SLACK_BOT_NAME="Slack Bot Name here"
 # Locally
 python3 covid_slack_bot.py
 
-# docker
+# docker run dockerhub image
+docker run \
+    -e "SELECTED_CODES=VIC,NSW" \
+    -e "SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN" \
+    -e "SLACK_CHANNEL_NAME=$SLACK_CHANNEL_NAME" \
+    -e "SLACK_BOT_NAME=$SLACK_BOT_NAME" \
+    boycey/covidliveslackbot:latest
+
+# docker run self built image
 docker run \
     -e "SELECTED_CODES=VIC,NSW" \
     -e "SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN" \
