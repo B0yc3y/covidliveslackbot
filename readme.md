@@ -47,7 +47,7 @@ docker run \
     covidliveslackbot:latest
 ```
 
-# Build new image
+## Build new image
 ```
 docker build -t covidliveslackbot:latest .
 ```
