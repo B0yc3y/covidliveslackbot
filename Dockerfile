@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.7-slim
 
 MAINTAINER James Boyce <mail@its-jam.es> 
 

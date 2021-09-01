@@ -53,7 +53,7 @@ def fetch_data(url: str, outfile: str):
         print(f"Unable to fetch data: {response.text}")
         exit(1)
 
-    print(f"Writing data to file: {url}")
+    print(f"Fetching data from: {url} and writing to file: {outfile}")
     with open(outfile, "w") as file1:
         # Writing data to a file
         file1.write(response.text)

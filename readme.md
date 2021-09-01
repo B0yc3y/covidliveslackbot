@@ -2,6 +2,9 @@
 
 This bot is a very simple slackbot that pulls data, summarises and posts up to date AU COVID stats to a provided slack channel. Sourcing data from https://covidlive.com.au
 
+
+![example-message](example-message.png)
+
 ## Install
 Assuming you have [virtualenv](https://github.com/pypa/virtualenv) and [pip](https://github.com/pypa/pip) installed the below will setup the requirements.
 ```
