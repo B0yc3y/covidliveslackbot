@@ -31,7 +31,7 @@ export SLACK_BOT_NAME="Slack Bot Name here"
 ## Run me
 ```shell
 # Locally
-python3 covid_slack_bot.py
+python3 post_covid_stats.py
 
 # docker run dockerhub image
 docker run \

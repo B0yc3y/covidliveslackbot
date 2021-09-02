@@ -40,6 +40,7 @@ def fetch_and_parse_data(source_url: str):
     # return parsed content
     return json.loads(response_body)
 
+
 def fetch_data(url: str):
     print(f"Fetching data from: {url}")
     response = requests.get(url)
@@ -49,6 +50,7 @@ def fetch_data(url: str):
 
     print(f"Successfully fetched")
     return response.text
+
 
 def get_most_recent_data_for_codes(data: Dict, codes: List[str]) -> Dict:
     most_recent_data: Dict[str] = {}
