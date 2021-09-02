@@ -3,21 +3,16 @@ from typing import List, Dict
 from slack_sdk import WebClient
 from slack_sdk.web import SlackResponse
 
+
 class CovidSlackBot:
 
-    def __init__(
-        self,
-        slack_token: str,
-        channel_name: str,
-        bot_name: str,
-        emoji: str,
-    ) -> None:
+    def __init__(self, slack_token: str, channel_name: str, bot_name: str, emoji: str) -> None:
         self.channel_name: str = channel_name
         self.bot_name: str = bot_name
         self.emoji: str = emoji
         self.client: WebClient = WebClient(
             token=slack_token,
-            ssl=SSLContext(),
+            ssl=SSLContext()
         )
 
     def post_messages_to_slack(self, messages: List[str]) -> SlackResponse:
@@ -32,13 +27,13 @@ class CovidSlackBot:
         ]
 
         print("Posting stats to slack")
-        
+
         return self.client.chat_postMessage(
-            channel = self.channel_name,
-            text = "COVID stats updated",
-            username = self.bot_name,
-            icon_emoji = self.emoji,
-            blocks = blocks,
+            channel=self.channel_name,
+            text="COVID stats updated",
+            username=self.bot_name,
+            icon_emoji=self.emoji,
+            blocks=blocks
         )
 
     # For the filtered data, generate messages and send them to slack
@@ -77,23 +72,23 @@ class CovidSlackBot:
         # New vaccinations in reporting period
         new_vax: int = None
         if code_data['VACC_DOSE_CNT'] is not None:
-            new_vax  = int(code_data['VACC_DOSE_CNT']) - int(code_data['PREV_VACC_DOSE_CNT'])
-        
+            new_vax = int(code_data['VACC_DOSE_CNT']) - int(code_data['PREV_VACC_DOSE_CNT'])
+
         # Change in the number of active cases
         active_case_change: int = None
         if code_data['ACTIVE_CNT'] is not None:
-            active_case_change  = int(code_data['ACTIVE_CNT']) - int(code_data['PREV_ACTIVE_CNT'])
-        
+            active_case_change = int(code_data['ACTIVE_CNT']) - int(code_data['PREV_ACTIVE_CNT'])
+
         # Change in the number of people in hospital
         hosp_change: int = None
         if code_data['MED_HOSP_CNT'] is not None:
-            hosp_change  = int(code_data['MED_HOSP_CNT']) - int(code_data['PREV_MED_HOSP_CNT'])
-        
+            hosp_change = int(code_data['MED_HOSP_CNT']) - int(code_data['PREV_MED_HOSP_CNT'])
+
         # Change in the number of people on ventilators
         vent_change: int = None
         if code_data['MED_VENT_CNT'] is not None:
-            vent_change  = int(code_data['MED_VENT_CNT']) - int(code_data['PREV_MED_VENT_CNT'])
-        
+            vent_change = int(code_data['MED_VENT_CNT']) - int(code_data['PREV_MED_VENT_CNT'])
+
         # Change in the number of people in the ICU
         icu_change: int = None
         if code_data['MED_ICU_CNT'] is not None:
@@ -104,17 +99,17 @@ class CovidSlackBot:
 
         # Depending on available data attempt to generate cases string in the format below 
         # 1,279 New total cases | 20,148 active cases (+1,108)
-        if new_cases is not None: 
+        if new_cases is not None:
             message += f":helmet_with_white_cross: {format(new_cases, ',d')} New total cases"
 
-            if active_case_change is not None and active_case_change != 0: 
+            if active_case_change is not None and active_case_change != 0:
                 message += f" | {format(int(code_data['ACTIVE_CNT']), ',d')} active cases ({'+' if int(active_case_change) >= 0 else ''}{format(active_case_change, ',d')})"
 
             message += "\n"
 
         # Depending on available data attempt to generate oversaes cases string in the format below 
         # 0 New overseas cases
-        if new_oseas_cases is not None: 
+        if new_oseas_cases is not None:
             message += f":earth_asia: {format(new_oseas_cases, ',d')} New overseas cases\n"
 
         # Depending on available data attempt to generate oversaes cases string in the format below 
@@ -126,7 +121,7 @@ class CovidSlackBot:
                 message += f" ({'+' if int(hosp_change) >= 0 else ''}{format(hosp_change, ',d')})"
 
             message += " Hospitalised"
-            
+
             if code_data['MED_ICU_CNT'] is not None:
                 message += f" | {format(int(code_data['MED_ICU_CNT']), ',d')}"
 
@@ -134,7 +129,7 @@ class CovidSlackBot:
                     message += f" ({'+' if int(icu_change) >= 0 else ''}{format(icu_change, ',d')})"
 
                 message += " in ICU"
-            
+
             if code_data['MED_VENT_CNT'] is not None:
                 message += f" | {format(int(code_data['MED_VENT_CNT']), ',d')}"
 
@@ -142,22 +137,22 @@ class CovidSlackBot:
                     message += f" ({'+' if int(vent_change) >= 0 else ''}{format(vent_change, ',d')})"
 
                 message += " ventilated"
-                
+
             message += "\n"
 
         # Depending on available data attempt to generate deaths string in the format below 
         # +0 Deaths | 822 Total COVID Deaths
-        if new_deaths is not None: 
+        if new_deaths is not None:
             message += f":skull: +{format(new_deaths, ',d')} Deaths"
 
             if code_data['DEATH_CNT'] is not None and code_data['DEATH_CNT'] != 0:
                 message += f" | {format(int(code_data['DEATH_CNT']), ',d')} Total COVID Deaths"
 
             message += "\n"
-        
+
         # Depending on available data attempt to generate tests string in the format below 
         # +48,372 Tests in the last reporting period | 9,647,579 total tests
-        if new_tests is not None: 
+        if new_tests is not None:
             message += f":test_tube: +{format(new_tests, ',d')} Tests in the last reporting period"
 
             if code_data['TEST_CNT'] is not None and code_data['TEST_CNT'] != 0:
@@ -168,12 +163,12 @@ class CovidSlackBot:
         # Depending on available data attempt to generate vaccinations string in the format: 12,046 New Doses |
         # 466,621 in total | 226,837 1st dose | 147,551 Fully Vaxed (This will often be incorrect as GP numbers come
         # in at odd times)
-        if new_vax is not None: 
+        if new_vax is not None:
             message += f":syringe: {format(new_vax, ',d')} New Doses"
 
             if code_data["VACC_DOSE_CNT"] is not None and code_data["VACC_DOSE_CNT"] != 0:
                 message += f" | {format(int(code_data['VACC_DOSE_CNT']), ',d')} in total"
-            
+
             if code_data["VACC_FIRST_DOSE_CNT"] is not None and code_data["VACC_FIRST_DOSE_CNT"] != 0:
                 message += f" | {format(int(code_data['VACC_FIRST_DOSE_CNT']), ',d')} 1st dose"
 
@@ -186,5 +181,5 @@ class CovidSlackBot:
         # 2021-09-01 Report date, using covidlive.com.au data published at: 2021-09-01 11:52:25 AEST
         if code_data["REPORT_DATE"] is not None and code_data["LAST_UPDATED_DATE"]:
             message += f":robot_face: {code_data['REPORT_DATE']} Report date, using covidlive.com.au data published at: {code_data['LAST_UPDATED_DATE']} AEST"
-        
+
         return message
