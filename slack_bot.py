@@ -74,11 +74,6 @@ class CovidSlackBot:
         if code_data['VACC_DOSE_CNT'] is not None:
             new_vax = int(code_data['VACC_DOSE_CNT']) - int(code_data['PREV_VACC_DOSE_CNT'])
 
-        #total vaccinations
-        total_vax: int = None
-        if code_data['VACC_DOSE_CNT'] is not None:
-            total_vax = int(code_data['VACC_DOSE_CNT'])
-
         # Change in the number of active cases
         active_case_change: int = None
         if code_data['ACTIVE_CNT'] is not None:
@@ -165,26 +160,27 @@ class CovidSlackBot:
 
             message += "\n"
 
-        # Depending on available data attempt to generate vaccinations string in the format: 12,046 New Doses |
-        # 466,621 in total | 226,837 1st dose | 147,551 Fully Vaxed (This will often be incorrect as GP numbers come
-        # in at odd times)
+        # Depending on available data attempt to generate vaccinations string in the format: 
+        # 12,046 New doses | 466,621 total | 78.2% 1st dose | 42.2% 2nd dose
+        # (This will often be incorrect as GP numbers come in at odd times)
         if new_vax is not None:
-            message += f":syringe: {format(new_vax, ',d')} New Doses"
+            message += f":syringe: {format(new_vax, ',d')} New doses"
 
             if code_data["VACC_DOSE_CNT"] is not None and code_data["VACC_DOSE_CNT"] != 0:
-                message += f" | {format(int(code_data['VACC_DOSE_CNT']), ',d')} in total"
+                message += f" | {format(int(code_data['VACC_DOSE_CNT']), ',d')} total"
 
             if code_data["VACC_FIRST_DOSE_CNT"] is not None and code_data["VACC_FIRST_DOSE_CNT"] != 0:
-                message += f" | {format(int(code_data['VACC_FIRST_DOSE_CNT'])/int(code_data['POPULATION']), ',.1%')} adults 1st dose"
+                message += f" | {format(int(code_data['VACC_FIRST_DOSE_CNT'])/int(code_data['POPULATION']), ',.1%')} {code_data['POPULATION_BRACKET']} 1st dose"
 
             if code_data["VACC_PEOPLE_CNT"] is not None and code_data["VACC_PEOPLE_CNT"] != 0:
-                message += f" | {format(int(code_data['VACC_PEOPLE_CNT'])/int(code_data['POPULATION']), ',.1%')} adults 2nd dose"
+                message += f" | {format(int(code_data['VACC_PEOPLE_CNT'])/int(code_data['POPULATION']), ',.1%')} {code_data['POPULATION_BRACKET']} 2nd dose"
 
             message += "\n        (This will often be lagging as GP numbers come in at odd times)\n"
 
         # Depending on available data attempt to date stamp the data in the below format
-        # 2021-09-01 Report date, using covidlive.com.au data published at: 2021-09-01 11:52:25 AEST
+        # 2021-09-01 Report date, using covidlive.com.au 
+        # data published at: 2021-09-01 11:52:25 AEST
         if code_data["REPORT_DATE"] is not None and code_data["LAST_UPDATED_DATE"]:
-            message += f":robot_face: {code_data['REPORT_DATE']} Report date, using covidlive.com.au data published at: {code_data['LAST_UPDATED_DATE']} AEST"
+            message += f":robot_face: {code_data['REPORT_DATE']} Report, using covidlive.com.au\n        Data published at: {code_data['LAST_UPDATED_DATE']} AEST"
 
         return message

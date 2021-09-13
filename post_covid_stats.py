@@ -6,7 +6,7 @@ from slack_sdk.web import SlackResponse
 from slack_bot import CovidSlackBot
 
 SELECTED_CODES = os.environ.get("SELECTED_CODES", 'VIC,NSW')
-POPULATION_BRACKET = os.environ.get("POPULATION_BRACKET", "Adult")
+POPULATION_BRACKET = os.environ.get("POPULATION_BRACKET", "16+")
 SLACK_CHANNEL_NAME = os.environ.get("SLACK_CHANNEL_NAME", "#testcovidbot")
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN", '')
 SLACK_BOT_EMOJI = os.environ.get("SLACK_BOT_EMOJI", ":robot_face:")
@@ -83,6 +83,7 @@ def get_most_recent_data_for_codes(data: Dict, population: Dict, codes: List[str
                 continue
     
     for code in codes:
+        most_recent_data[code]["POPULATION_BRACKET"] = population_bracket
         if code not in population:
             most_recent_data[code]["POPULATION"] = None
             continue
