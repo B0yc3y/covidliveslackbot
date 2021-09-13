@@ -81,7 +81,14 @@ def get_most_recent_data_for_codes(data: Dict, population: Dict, codes: List[str
                 most_recent_data[row['CODE']] = row
                 print(f'Code: {row["CODE"]} data selected for updated date: {row["LAST_UPDATED_DATE"]}')
                 continue
-    
+            
+            if current['VACC_DOSE_CNT'] == None and row['VACC_DOSE_CNT'] != None:
+                #vaccination data hasn't updated - just use previous
+                current['PREV_VACC_DOSE_CNT'] = row['PREV_VACC_DOSE_CNT']
+                current['VACC_DOSE_CNT'] = row['VACC_DOSE_CNT']
+                current['VACC_FIRST_DOSE_CNT'] = row['VACC_FIRST_DOSE_CNT']
+                current['VACC_PEOPLE_CNT'] = row['VACC_PEOPLE_CNT']
+                
     for code in codes:
         most_recent_data[code]["POPULATION_BRACKET"] = population_bracket
         if code not in population:
