@@ -161,19 +161,16 @@ class CovidSlackBot:
             message += "\n"
 
         # Depending on available data attempt to generate vaccinations string in the format: 
-        # 12,046 New doses | 466,621 total | 78.2% 1st dose | 42.2% 2nd dose
+        # 12,046 New doses | 466,621 total | 78.2% (+0.2) 1st dose | 42.2% (+0.01) 2nd dose
         # (This will often be incorrect as GP numbers come in at odd times)
         if new_vax is not None:
-            message += f":syringe: {format(new_vax, ',d')} New doses"
-
-            if code_data["VACC_DOSE_CNT"] is not None and code_data["VACC_DOSE_CNT"] != 0:
-                message += f" | {format(int(code_data['VACC_DOSE_CNT']), ',d')} total"
+            message += f":syringe: {int(code_data['VACC_DOSE_CNT']):,d} doses (+{new_vax:,d})"
 
             if code_data["VACC_FIRST_DOSE_CNT"] is not None and code_data["VACC_FIRST_DOSE_CNT"] != 0:
-                message += f" | {format(int(code_data['VACC_FIRST_DOSE_CNT'])/int(code_data['POPULATION']), ',.1%')} {code_data['POPULATION_BRACKET']} 1st dose"
+                message += self.format_vax(code_data, "VACC_FIRST_DOSE_CNT", "1st")
 
             if code_data["VACC_PEOPLE_CNT"] is not None and code_data["VACC_PEOPLE_CNT"] != 0:
-                message += f" | {format(int(code_data['VACC_PEOPLE_CNT'])/int(code_data['POPULATION']), ',.1%')} {code_data['POPULATION_BRACKET']} 2nd dose"
+                message += self.format_vax(code_data, "VACC_PEOPLE_CNT", "2nd")
 
             message += "\n        (This will often be lagging as GP numbers come in at odd times)\n"
 
@@ -184,3 +181,13 @@ class CovidSlackBot:
             message += f":robot_face: {code_data['REPORT_DATE']} Report, using covidlive.com.au\n        Data published at: {code_data['LAST_UPDATED_DATE']} AEST"
 
         return message
+
+    def format_vax(self, code_data: Dict, vax_data: str, ordinal: str) -> str:
+        current_dose = self.vax_to_percentage(code_data, vax_data)
+        prev_dose = self.vax_to_percentage(code_data, 'PREV_' + vax_data)
+        dose_delta = current_dose - prev_dose
+        return f" | {current_dose:.1%} (+{dose_delta*100:.2}) {code_data['POPULATION_BRACKET']} {ordinal} dose"
+
+    def vax_to_percentage(self, code_data: Dict, vax_data: str) -> float:
+        return int(code_data[vax_data])/int(code_data['POPULATION']);
+

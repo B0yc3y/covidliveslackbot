@@ -19,8 +19,7 @@ def post_covid_stats() -> SlackResponse:
     covid_data: Dict = fetch_and_parse_data(source_url)
     
     with open(population_data_file) as populationDataFile:
-        population_data: Dict = json.load(populationDataFile);
-        populationDataFile.close();
+        population_data: Dict = json.load(populationDataFile)
     
     slack_bot: CovidSlackBot = CovidSlackBot(
         SLACK_BOT_TOKEN,
@@ -86,7 +85,9 @@ def get_most_recent_data_for_codes(data: Dict, population: Dict, codes: List[str
                 #vaccination data hasn't updated - just use previous
                 current['PREV_VACC_DOSE_CNT'] = row['PREV_VACC_DOSE_CNT']
                 current['VACC_DOSE_CNT'] = row['VACC_DOSE_CNT']
+                current['PREV_VACC_FIRST_DOSE_CNT'] = row['PREV_VACC_FIRST_DOSE_CNT']
                 current['VACC_FIRST_DOSE_CNT'] = row['VACC_FIRST_DOSE_CNT']
+                current['PREV_VACC_PEOPLE_CNT'] = row['PREV_VACC_PEOPLE_CNT']
                 current['VACC_PEOPLE_CNT'] = row['VACC_PEOPLE_CNT']
                 
     for code in codes:
