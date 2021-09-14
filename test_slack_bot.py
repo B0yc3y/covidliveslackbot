@@ -22,7 +22,9 @@ def test_generate_message_for_code():
 :hospital: 908 (+39) Hospitalised | 150 (+7) in ICU | 66 (+8) ventilated
 :skull: +4 Deaths | 154 Total COVID Deaths
 :test_tube: +173,913 Tests in the last reporting period | 13,367,758 total tests
-:syringe: 121,170 New Doses | 6,990,810 in total | 4,547,478 1st dose | 2,484,199 Fully Vaxed (This will often be incorrect as GP numbers come in at odd times)
-:robot_face: 2021-09-01 Report date, using covidlive.com.au data published at: 2021-09-01 11:15:06 AEST"""
+:syringe: 6,990,810 doses (+121,170) | 69.3% (+1.1) 16+ 1st dose | 37.8% (+0.77) 16+ 2nd dose
+        (This will often be lagging as GP numbers come in at odd times)
+:robot_face: 2021-09-01 Report, using covidlive.com.au
+        Data published at: 2021-09-01 11:15:06 AEST"""
 
     assert message == expected, f"Message: message should match expected"

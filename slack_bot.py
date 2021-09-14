@@ -160,26 +160,34 @@ class CovidSlackBot:
 
             message += "\n"
 
-        # Depending on available data attempt to generate vaccinations string in the format: 12,046 New Doses |
-        # 466,621 in total | 226,837 1st dose | 147,551 Fully Vaxed (This will often be incorrect as GP numbers come
-        # in at odd times)
+        # Depending on available data attempt to generate vaccinations string in the format: 
+        # 12,046 New doses | 466,621 total | 78.2% (+0.2) 1st dose | 42.2% (+0.01) 2nd dose
+        # (This will often be incorrect as GP numbers come in at odd times)
         if new_vax is not None:
-            message += f":syringe: {format(new_vax, ',d')} New Doses"
-
-            if code_data["VACC_DOSE_CNT"] is not None and code_data["VACC_DOSE_CNT"] != 0:
-                message += f" | {format(int(code_data['VACC_DOSE_CNT']), ',d')} in total"
+            message += f":syringe: {int(code_data['VACC_DOSE_CNT']):,d} doses (+{new_vax:,d})"
 
             if code_data["VACC_FIRST_DOSE_CNT"] is not None and code_data["VACC_FIRST_DOSE_CNT"] != 0:
-                message += f" | {format(int(code_data['VACC_FIRST_DOSE_CNT']), ',d')} 1st dose"
+                message += self.format_vax(code_data, "VACC_FIRST_DOSE_CNT", "1st")
 
             if code_data["VACC_PEOPLE_CNT"] is not None and code_data["VACC_PEOPLE_CNT"] != 0:
-                message += f" | {format(int(code_data['VACC_PEOPLE_CNT']), ',d')} Fully Vaxed"
+                message += self.format_vax(code_data, "VACC_PEOPLE_CNT", "2nd")
 
-            message += " (This will often be incorrect as GP numbers come in at odd times)\n"
+            message += "\n        (This will often be lagging as GP numbers come in at odd times)\n"
 
         # Depending on available data attempt to date stamp the data in the below format
-        # 2021-09-01 Report date, using covidlive.com.au data published at: 2021-09-01 11:52:25 AEST
+        # 2021-09-01 Report date, using covidlive.com.au 
+        # data published at: 2021-09-01 11:52:25 AEST
         if code_data["REPORT_DATE"] is not None and code_data["LAST_UPDATED_DATE"]:
-            message += f":robot_face: {code_data['REPORT_DATE']} Report date, using covidlive.com.au data published at: {code_data['LAST_UPDATED_DATE']} AEST"
+            message += f":robot_face: {code_data['REPORT_DATE']} Report, using covidlive.com.au\n        Data published at: {code_data['LAST_UPDATED_DATE']} AEST"
 
         return message
+
+    def format_vax(self, code_data: Dict, vax_data: str, ordinal: str) -> str:
+        current_dose = self.vax_to_percentage(code_data, vax_data)
+        prev_dose = self.vax_to_percentage(code_data, 'PREV_' + vax_data)
+        dose_delta = current_dose - prev_dose
+        return f" | {current_dose:.1%} (+{dose_delta*100:.2}) {code_data['POPULATION_BRACKET']} {ordinal} dose"
+
+    def vax_to_percentage(self, code_data: Dict, vax_data: str) -> float:
+        return int(code_data[vax_data])/int(code_data['POPULATION']);
+
