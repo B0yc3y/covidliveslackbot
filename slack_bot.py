@@ -15,7 +15,23 @@ class CovidSlackBot:
             ssl=SSLContext()
         )
 
-    def post_messages_to_slack(self, messages: List[str]) -> SlackResponse:
+    def post_messages_to_slack(self, blocks) -> SlackResponse:
+        print("Posting stats to slack")
+        return self.client.chat_postMessage(
+            channel=self.channel_name,
+            text="COVID stats updated",
+            username=self.bot_name,
+            icon_emoji=self.emoji,
+            blocks=blocks
+        )
+
+    # For the filtered data, generate messages and send them to slack
+    def execute_for_covid_data(self, covid_data: Dict) -> SlackResponse:
+        # Generate the messages for each state/country code
+        messages: List[str] = []
+        for code_data in covid_data:
+            messages.append(self.generate_message_for_code(covid_data[code_data]))
+
         blocks = [
             {
                 "type": "section",
@@ -26,25 +42,60 @@ class CovidSlackBot:
             } for message in messages
         ]
 
-        print("Posting stats to slack")
+        # Post these messages to slack
+        return self.post_messages_to_slack(blocks)
 
-        return self.client.chat_postMessage(
-            channel=self.channel_name,
-            text="COVID stats updated",
-            username=self.bot_name,
-            icon_emoji=self.emoji,
-            blocks=blocks
-        )
-
-    # For the filtered data, generate messages and send them to slack
-    def execute_for_codes(self, covid_data: Dict) -> SlackResponse:
+    def execute_for_vax_stats(self, vax_data: Dict) -> SlackResponse:
         # Generate the messages for each state/country code
-        messages: List[str] = []
-        for code_data in covid_data:
-            messages.append(self.generate_message_for_code(covid_data[code_data]))
+        blocks = [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": ":dart: Vax Stats"
+                }
+            },
+            {
+                "type": "divider"
+            }
+        ]
+        
+        for code in vax_data:
+            blocks.extend(self.generate_vax_stats_for_code(vax_data[code]))
 
         # Post these messages to slack
-        return self.post_messages_to_slack(messages)
+        return self.post_messages_to_slack(blocks)
+
+    def generate_vax_stats_for_code(self, vax_data: Dict) -> List:
+        # generate vax stats for each state/country code
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"{vax_data['CODE_EMOJI']}    *{vax_data['CODE']}*\n"
+                }
+            },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "section",
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "\n  :syringe: *1st dose*\n    *60%:* :white_check_mark:\n*    70%:* Oct 10\n*    80%:* Oct 11\n    *90%*: Oct 12\n"
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": "\n  :syringe: :syringe: *2nd dose*\n    *60%:* :white_check_mark:\n    *70%:* Oct 10\n    *80%:* Oct 11\n    *90%*: Oct 12\n"
+                    }
+                ]
+            },
+            {
+                "type": "divider"
+            }
+        ]
 
     def generate_message_for_code(self, code_data: Dict) -> str:
         # prepare the new data from the previous and current values provided in the payload

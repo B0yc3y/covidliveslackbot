@@ -8,6 +8,7 @@ from slack_bot import CovidSlackBot
 SELECTED_CODES = os.environ.get("SELECTED_CODES", 'VIC,NSW')
 POPULATION_BRACKET = os.environ.get("POPULATION_BRACKET", "16+")
 SLACK_CHANNEL_NAME = os.environ.get("SLACK_CHANNEL_NAME", "#testcovidbot")
+SLACK_BOT_DISPLAY = os.environ.get("SLACK_BOT_DISPLAY", 'VAX_DATA')
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN", '')
 SLACK_BOT_EMOJI = os.environ.get("SLACK_BOT_EMOJI", ":robot_face:")
 SLACK_BOT_NAME = os.environ.get("SLACK_BOT_NAME", "CovidLiveSummary")
@@ -27,10 +28,21 @@ def post_covid_stats() -> SlackResponse:
         SLACK_BOT_NAME,
         SLACK_BOT_EMOJI
     )
-    code_data: Dict = get_most_recent_data_for_codes(covid_data, population_data, SELECTED_CODES.split(","), POPULATION_BRACKET)
-    response: SlackResponse = slack_bot.execute_for_codes(code_data)
 
-    if response.status_code is not 200:
+    response: SlackResponse
+
+    if SLACK_BOT_DISPLAY == "CODE_DATA":
+        code_data: Dict = get_most_recent_data_for_codes(covid_data, population_data, SELECTED_CODES.split(","), POPULATION_BRACKET)
+        response = slack_bot.execute_for_covid_data(code_data)
+    elif SLACK_BOT_DISPLAY == "VAX_DATA":
+        vax_data: Dict = { 
+            "AUS": { "CODE": "AUS", "CODE_EMOJI": ":flag-au:" },
+            "NSW": { "CODE": "NSW", "CODE_EMOJI": ":beach_with_umbrella:" },
+            "VIC": { "CODE": "VIC", "CODE_EMOJI": ":coffee:" }
+        }
+        response = slack_bot.execute_for_vax_stats(vax_data)
+
+    if response.status_code != 200:
         print(f"something went wrong: {response.data}")
         exit(1)
 
