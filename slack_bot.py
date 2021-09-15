@@ -1,5 +1,8 @@
 from ssl import SSLContext
 from typing import List, Dict
+from datetime import timedelta, date, datetime
+import math
+
 from slack_sdk import WebClient
 from slack_sdk.web import SlackResponse
 
@@ -15,7 +18,23 @@ class CovidSlackBot:
             ssl=SSLContext()
         )
 
-    def post_messages_to_slack(self, messages: List[str]) -> SlackResponse:
+    def post_messages_to_slack(self, blocks) -> SlackResponse:
+        print("Posting stats to slack")
+        return self.client.chat_postMessage(
+            channel=self.channel_name,
+            text="COVID stats updated",
+            username=self.bot_name,
+            icon_emoji=self.emoji,
+            blocks=blocks
+        )
+
+    # For the filtered data, generate messages and send them to slack
+    def execute_for_covid_data(self, covid_data: Dict) -> SlackResponse:
+        # Generate the messages for each state/country code
+        messages: List[str] = []
+        for code_data in covid_data:
+            messages.append(self.generate_message_for_code(covid_data[code_data]))
+
         blocks = [
             {
                 "type": "section",
@@ -26,25 +45,94 @@ class CovidSlackBot:
             } for message in messages
         ]
 
-        print("Posting stats to slack")
+        # Post these messages to slack
+        return self.post_messages_to_slack(blocks)
 
-        return self.client.chat_postMessage(
-            channel=self.channel_name,
-            text="COVID stats updated",
-            username=self.bot_name,
-            icon_emoji=self.emoji,
-            blocks=blocks
-        )
-
-    # For the filtered data, generate messages and send them to slack
-    def execute_for_codes(self, covid_data: Dict) -> SlackResponse:
+    def execute_for_vax_stats(self, vax_data: Dict) -> SlackResponse:
         # Generate the messages for each state/country code
-        messages: List[str] = []
-        for code_data in covid_data:
-            messages.append(self.generate_message_for_code(covid_data[code_data]))
+        blocks = [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": ":dart: Vax Stats"
+                }
+            },
+            {
+                "type": "divider"
+            }
+        ].extend( [self.generate_vax_stats_for_code(vax_data[code]) for code in vax_data] )
 
         # Post these messages to slack
-        return self.post_messages_to_slack(messages)
+        return self.post_messages_to_slack(blocks)
+
+    def generate_vax_stats_for_code(self, vax_data: Dict) -> List:
+        # generate vax stats for each state/country code
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f":{vax_data['CODE_EMOJI']}:    *{vax_data['CODE']}*\n"
+                }
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*{int(vax_data['VACC_DOSE_CNT']):,d}* total doses administered. Data published at {vax_data['LAST_UPDATED_DATE']} AEST"
+                    }
+                ]
+            },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "section",
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": 
+                        f"\n  :syringe: *1st dose* ({vax_data['POPULATION_BRACKET']})"
+                        f"\n    {self.format_vax_stat(0.6, vax_data, 'VACC_FIRST_DOSE_CNT')}"
+                        f"\n    {self.format_vax_stat(0.7, vax_data, 'VACC_FIRST_DOSE_CNT')}"
+                        f"\n    {self.format_vax_stat(0.8, vax_data, 'VACC_FIRST_DOSE_CNT')}"
+                        f"\n    {self.format_vax_stat(0.9, vax_data, 'VACC_FIRST_DOSE_CNT')}"
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": 
+                        f"\n  :syringe::syringe: *2nd dose* ({vax_data['POPULATION_BRACKET']})"
+                        f"\n    {self.format_vax_stat(0.6, vax_data, 'VACC_PEOPLE_CNT')}"
+                        f"\n    {self.format_vax_stat(0.7, vax_data, 'VACC_PEOPLE_CNT')}"
+                        f"\n    {self.format_vax_stat(0.8, vax_data, 'VACC_PEOPLE_CNT')}"
+                        f"\n    {self.format_vax_stat(0.9, vax_data, 'VACC_PEOPLE_CNT')}"
+                    }
+                ]
+            },
+            {
+                "type": "divider"
+            }
+        ]
+
+    def format_vax_stat(self, target_percentage: float, vax_data: Dict, vax_field: str) -> str:
+        vax_percentage: float = self.vax_to_percentage(vax_data, vax_field)
+        vax_status: str = ":white_check_mark:"
+
+        if vax_percentage < target_percentage:
+            rolling_avg = (vax_percentage - self.vax_to_percentage(vax_data, "PREV_" + vax_field)) / vax_data["RECORD_COUNT"] 
+
+            days_to_target = math.ceil((target_percentage - vax_percentage) / rolling_avg)
+            
+            if days_to_target > 365:
+                vax_status = ":no_entry:"
+            else:
+                dt = datetime.strptime(vax_data["LAST_UPDATED_DATE"], "%Y-%m-%d %H:%M:%S") + timedelta(days=days_to_target)
+                vax_status = dt.strftime("%b %d")
+        
+        #example format: *60%* Oct 10
+        return f"*{target_percentage:.0%}:* {vax_status}"
 
     def generate_message_for_code(self, code_data: Dict) -> str:
         # prepare the new data from the previous and current values provided in the payload
@@ -182,12 +270,12 @@ class CovidSlackBot:
 
         return message
 
-    def format_vax(self, code_data: Dict, vax_data: str, ordinal: str) -> str:
-        current_dose = self.vax_to_percentage(code_data, vax_data)
-        prev_dose = self.vax_to_percentage(code_data, 'PREV_' + vax_data)
+    def format_vax(self, code_data: Dict, vax_field: str, ordinal: str) -> str:
+        current_dose = self.vax_to_percentage(code_data, vax_field)
+        prev_dose = self.vax_to_percentage(code_data, 'PREV_' + vax_field)
         dose_delta = current_dose - prev_dose
         return f" | {current_dose:.1%} (+{dose_delta*100:.2}) {code_data['POPULATION_BRACKET']} {ordinal} dose"
 
-    def vax_to_percentage(self, code_data: Dict, vax_data: str) -> float:
-        return int(code_data[vax_data])/int(code_data['POPULATION']);
+    def vax_to_percentage(self, code_data: Dict, vax_field: str) -> float:
+        return int(code_data[vax_field])/int(code_data['POPULATION']);
 

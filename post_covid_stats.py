@@ -5,21 +5,22 @@ from typing import Dict, List
 from slack_sdk.web import SlackResponse
 from slack_bot import CovidSlackBot
 
-SELECTED_CODES = os.environ.get("SELECTED_CODES", 'VIC,NSW')
+SELECTED_CODES = os.environ.get("SELECTED_CODES", 'AUS,VIC,NSW')
 POPULATION_BRACKET = os.environ.get("POPULATION_BRACKET", "16+")
 SLACK_CHANNEL_NAME = os.environ.get("SLACK_CHANNEL_NAME", "#testcovidbot")
+SLACK_BOT_DISPLAY = os.environ.get("SLACK_BOT_DISPLAY", 'CODE_DATA,VAX_DATA')
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN", '')
 SLACK_BOT_EMOJI = os.environ.get("SLACK_BOT_EMOJI", ":robot_face:")
 SLACK_BOT_NAME = os.environ.get("SLACK_BOT_NAME", "CovidLiveSummary")
 
 
 def post_covid_stats() -> SlackResponse:
-    population_data_file: str = "resources/population.json"
+    state_data_file: str = "resources/state-data.json"
     source_url: str = "https://covidlive.com.au/covid-live.json"
     covid_data: Dict = fetch_and_parse_data(source_url)
     
-    with open(population_data_file) as populationDataFile:
-        population_data: Dict = json.load(populationDataFile)
+    with open(state_data_file) as stateDataFile:
+        state_data: Dict = json.load(stateDataFile)
     
     slack_bot: CovidSlackBot = CovidSlackBot(
         SLACK_BOT_TOKEN,
@@ -27,10 +28,19 @@ def post_covid_stats() -> SlackResponse:
         SLACK_BOT_NAME,
         SLACK_BOT_EMOJI
     )
-    code_data: Dict = get_most_recent_data_for_codes(covid_data, population_data, SELECTED_CODES.split(","), POPULATION_BRACKET)
-    response: SlackResponse = slack_bot.execute_for_codes(code_data)
 
-    if response.status_code is not 200:
+    response: SlackResponse
+    codes = SELECTED_CODES.split(",")
+    display = SLACK_BOT_DISPLAY.split(",")
+
+    if "CODE_DATA" in display:
+        code_data: Dict = get_most_recent_data_for_codes(covid_data, state_data, codes, POPULATION_BRACKET)
+        response = slack_bot.execute_for_covid_data(code_data)
+    if "VAX_DATA" in display:
+        vax_data: Dict = get_vax_data_for_codes(covid_data, state_data, codes, POPULATION_BRACKET)
+        response = slack_bot.execute_for_vax_stats(vax_data)
+
+    if response.status_code != 200:
         print(f"something went wrong: {response.data}")
         exit(1)
 
@@ -57,7 +67,35 @@ def fetch_data(url: str):
     return response.text
 
 
-def get_most_recent_data_for_codes(data: Dict, population: Dict, codes: List[str], population_bracket: str) -> Dict:
+def get_vax_data_for_codes(data: Dict, state_data: Dict, codes: List[str], population_bracket: str) -> Dict:
+    vax_data: Dict[str] = {}
+
+    for row in data:
+        if(row['CODE'] in codes):
+            code: str = row['CODE']
+            # If we dont have this state in the most recent data add it
+            if code not in vax_data:
+                if row["LAST_UPDATED_DATE"] != None and row['VACC_DOSE_CNT'] != None:
+                    vax_data[code] = row
+                    
+                    vax_data[code]["RECORD_COUNT"] = 0
+                    vax_data[code]["POPULATION_BRACKET"] = population_bracket
+                    vax_data[code]["CODE_EMOJI"] = state_data[code]["EMOJI"]
+                    vax_data[code]["POPULATION"] = state_data[code]["POPULATION"][population_bracket]
+
+                    print(f'Code: {code} latest vax data selected for updated date: {row["LAST_UPDATED_DATE"]}')
+                continue
+
+            current = vax_data[code]
+            if current["RECORD_COUNT"] < 7: #weekly average
+                current["RECORD_COUNT"] += 1
+                current["PREV_VACC_FIRST_DOSE_CNT"] = row["VACC_FIRST_DOSE_CNT"]
+                current["PREV_VACC_PEOPLE_CNT"] = row["VACC_PEOPLE_CNT"]
+
+    return vax_data
+
+
+def get_most_recent_data_for_codes(data: Dict, state_data: Dict, codes: List[str], population_bracket: str) -> Dict:
     most_recent_data: Dict[str] = {}
 
     for row in data:
@@ -92,11 +130,11 @@ def get_most_recent_data_for_codes(data: Dict, population: Dict, codes: List[str
                 
     for code in codes:
         most_recent_data[code]["POPULATION_BRACKET"] = population_bracket
-        if code not in population:
+        if code not in state_data:
             most_recent_data[code]["POPULATION"] = None
             continue
 
-        most_recent_data[code]["POPULATION"] = population[code][population_bracket]
+        most_recent_data[code]["POPULATION"] = state_data[code]["POPULATION"][population_bracket]
 
     return most_recent_data
 

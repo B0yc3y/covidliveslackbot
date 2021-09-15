@@ -36,6 +36,7 @@ python3 post_covid_stats.py
 # docker run dockerhub image
 docker run \
     -e "SELECTED_CODES=VIC,NSW" \
+    -e "SLACK_BOT_DISPLAY=CODE_DATA,VAX_DATA" \
     -e "SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN" \
     -e "SLACK_CHANNEL_NAME=$SLACK_CHANNEL_NAME" \
     -e "SLACK_BOT_NAME=$SLACK_BOT_NAME" \
@@ -44,6 +45,7 @@ docker run \
 # docker run self built image
 docker run \
     -e "SELECTED_CODES=VIC,NSW" \
+    -e "SLACK_BOT_DISPLAY=CODE_DATA,VAX_DATA" \
     -e "SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN" \
     -e "SLACK_CHANNEL_NAME=$SLACK_CHANNEL_NAME" \
     -e "SLACK_BOT_NAME=$SLACK_BOT_NAME" \

@@ -1,0 +1,56 @@
+{
+  "AUS": {
+    "EMOJI": "flag-au",
+    "POPULATION": {
+      "16+": 20619959
+    }
+  },
+  "ACT": {
+    "EMOJI": "ballot_box_with_ballot",
+    "POPULATION": {
+      "16+": 344037
+    }
+  },
+  "NSW": {
+    "EMOJI": "beach_with_umbrella",
+    "POPULATION": {
+      "16+": 6565651
+    }
+  },
+  "NT": {
+    "EMOJI": "kangaroo",
+    "POPULATION": {
+      "16+": 190571
+    }
+  },
+  "QLD": {
+    "EMOJI": "thong_sandal",
+    "POPULATION": {
+      "16+": 4112707
+    }
+  },
+  "SA": {
+    "EMOJI": "wine-glass",
+    "POPULATION": {
+      "16+": 1440400
+    }
+  },
+  "TAS": {
+    "EMOJI": "smiling_imp",
+    "POPULATION": {
+      "16+": 440172
+    }
+  },
+  "VIC": {
+    "EMOJI": "coffee",
+    "POPULATION": {
+      "16+": 5407574
+    }
+  },
+  "WA": {
+    "EMOJI": "hamster",
+    "POPULATION": {
+      "16+": 2114978
+    }
+  }
+}
