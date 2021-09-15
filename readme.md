@@ -3,10 +3,10 @@
 This bot is a very simple slackbot that pulls data, summarises and posts up to date AU COVID & Vaccine target stats to a provided slack channel. Sourcing data from https://covidlive.com.au
 
 Daily Covid Stats Example:
-![example-message](Example numbers message.png)
+![example-message](./example_numbers_message.png)
 
 Daily Vaccine Target Stats Example:
-![example-message](example target numbers.png)
+![example-message](./example_target_numbers.png)
 
 ## Install
 Assuming you have [virtualenv](https://github.com/pypa/virtualenv) and [pip](https://github.com/pypa/pip) installed the below will setup the requirements.
