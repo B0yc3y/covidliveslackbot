@@ -1,9 +1,12 @@
 # CovidLive AU Summary Slackbot
 
-This bot is a very simple slackbot that pulls data, summarises and posts up to date AU COVID stats to a provided slack channel. Sourcing data from https://covidlive.com.au
+This bot is a very simple slackbot that pulls data, summarises and posts up to date AU COVID & Vaccine target stats to a provided slack channel. Sourcing data from https://covidlive.com.au
 
+Daily Covid Stats Example:
+![example-message](Example numbers message.png)
 
-![example-message](example-message.png)
+Daily Vaccine Target Stats Example:
+![example-message](example target numbers.png)
 
 ## Install
 Assuming you have [virtualenv](https://github.com/pypa/virtualenv) and [pip](https://github.com/pypa/pip) installed the below will setup the requirements.
@@ -26,6 +29,7 @@ export SELECTED_CODES="VIC,NSW,QLD,NT,SA,ACT,WA,TAS,AUS"
 export SLACK_CHANNEL_NAME="#<MyChannelNameHere>" 
 export SLACK_BOT_TOKEN="Slack OAuthTokenHere" 
 export SLACK_BOT_NAME="Slack Bot Name here" 
+export SLACK_BOT_DISPLAY="CODE_DATA,VAX_DATA"  # CODE_DATA is covid stats, VAX_DATA is vaccine targets
 ```
 
 ## Run me
