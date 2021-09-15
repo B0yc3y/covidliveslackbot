@@ -5,7 +5,7 @@ from slack_bot import CovidSlackBot
 
 
 def test_generate_message_for_code():
-    with open("resources/nsw.json") as file:
+    with open("./resources/nsw.json") as file:
         nsw_data: Dict = json.load(file)
 
     slack_bot: CovidSlackBot = CovidSlackBot(
@@ -31,7 +31,7 @@ def test_generate_message_for_code():
 
 
 def test_generate_vax_data_for_code():
-    with open("resources/nsw.json") as file:
+    with open("./resources/nsw.json") as file:
         nsw_data: Dict = json.load(file)
 
     slack_bot: CovidSlackBot = CovidSlackBot(
