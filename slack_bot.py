@@ -61,7 +61,10 @@ class CovidSlackBot:
             {
                 "type": "divider"
             }
-        ].extend( [self.generate_vax_stats_for_code(vax_data[code]) for code in vax_data] )
+        ] 
+        
+        for block in (self.generate_vax_stats_for_code(vax_data[code]) for code in vax_data):
+            blocks.extend(block)
 
         # Post these messages to slack
         return self.post_messages_to_slack(blocks)
