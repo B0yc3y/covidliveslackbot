@@ -102,7 +102,7 @@ def normalise_vax_data_for_population(data: Dict, population_bracket: str):
         youthFullVax: int = int(data["VACC_PEOPLE_CNT_12_15"])
 
         # fallback on previous vax if 0. Datafeed seems to update current vax with 
-        # yesterdays data but not 12-15, so this should be accurate (enough)
+        # yesterdays data before todays data comes in but not 12-15, so this should be accurate (enough)
         if youthFirstVax == 0:
             youthFirstVax = int(data["PREV_VACC_FIRST_DOSE_CNT_12_15"])
 
