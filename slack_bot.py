@@ -280,5 +280,6 @@ class CovidSlackBot:
         return f" | {current_dose:.1%} (+{dose_delta*100:.2}) {code_data['POPULATION_BRACKET']} {ordinal} dose"
 
     def vax_to_percentage(self, code_data: Dict, vax_field: str) -> float:
+        vax_field += "_" + code_data['POPULATION_BRACKET'];
         return int(code_data[vax_field])/int(code_data['POPULATION']);
 
