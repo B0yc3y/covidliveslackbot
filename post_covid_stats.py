@@ -82,18 +82,51 @@ def get_vax_data_for_codes(data: Dict, state_data: Dict, codes: List[str], popul
                     vax_data[code]["POPULATION_BRACKET"] = population_bracket
                     vax_data[code]["CODE_EMOJI"] = state_data[code]["EMOJI"]
                     vax_data[code]["POPULATION"] = state_data[code]["POPULATION"][population_bracket]
-
+                    
+                    normalise_vax_data_for_population(vax_data[code])
                     print(f'Code: {code} latest vax data selected for updated date: {row["LAST_UPDATED_DATE"]}')
                 continue
 
             current = vax_data[code]
             if current["RECORD_COUNT"] < 7: #weekly average
                 current["RECORD_COUNT"] += 1
-                current["PREV_VACC_FIRST_DOSE_CNT"] = row["VACC_FIRST_DOSE_CNT"]
-                current["PREV_VACC_PEOPLE_CNT"] = row["VACC_PEOPLE_CNT"]
+                normalise_vax_data_for_population(row);
+                current[f"PREV_VACC_FIRST_DOSE_CNT_{population_bracket}"] = row[f"VACC_FIRST_DOSE_CNT_{population_bracket}"]
+                current[f"PREV_VACC_PEOPLE_CNT_{population_bracket}"] = row[f"VACC_PEOPLE_CNT_{population_bracket}"]
 
     return vax_data
 
+def normalise_vax_data_for_population(data: Dict):
+    
+    youthFirstVax: int = int(data["VACC_FIRST_DOSE_CNT_12_15"])
+    youthFullVax: int = int(data["VACC_PEOPLE_CNT_12_15"])
+    prevYouthFirstVax: int = int(data["PREV_VACC_FIRST_DOSE_CNT_12_15"])
+    prevYouthFullVax: int = int(data["PREV_VACC_PEOPLE_CNT_12_15"])
+
+    # fallback on previous vax if 0. Datafeed seems to update current vax with 
+    # yesterdays data before todays data comes in but not 12-15, so this should be accurate (enough)
+    if youthFirstVax == 0:
+        youthFirstVax = prevYouthFirstVax
+
+    if youthFullVax == 0:
+        youthFullVax = prevYouthFullVax
+
+    totalFirstVax: int = int(data["VACC_FIRST_DOSE_CNT"])
+    totalFullVax: int = int(data["VACC_PEOPLE_CNT"])
+    prevTotalFirstVax: int = int(data["PREV_VACC_FIRST_DOSE_CNT"])
+    prevTotalFullVax: int = int(data["PREV_VACC_PEOPLE_CNT"])
+
+    data["VACC_FIRST_DOSE_CNT_12+"] = totalFirstVax
+    data["VACC_PEOPLE_CNT_12+"] = totalFullVax
+
+    data["PREV_VACC_FIRST_DOSE_CNT_12+"] = prevTotalFirstVax
+    data["PREV_VACC_PEOPLE_CNT_12+"] = prevTotalFullVax
+
+    data["VACC_FIRST_DOSE_CNT_16+"] = totalFirstVax - youthFirstVax
+    data["VACC_PEOPLE_CNT_16+"] = totalFullVax - youthFullVax
+    
+    data["PREV_VACC_FIRST_DOSE_CNT_16+"] = prevTotalFirstVax - prevYouthFirstVax
+    data["PREV_VACC_PEOPLE_CNT_16+"] = prevTotalFullVax - prevYouthFullVax
 
 def get_most_recent_data_for_codes(data: Dict, state_data: Dict, codes: List[str], population_bracket: str) -> Dict:
     most_recent_data: Dict[str] = {}
@@ -130,6 +163,7 @@ def get_most_recent_data_for_codes(data: Dict, state_data: Dict, codes: List[str
                 
     for code in codes:
         most_recent_data[code]["POPULATION_BRACKET"] = population_bracket
+        normalise_vax_data_for_population(most_recent_data[code])
         if code not in state_data:
             most_recent_data[code]["POPULATION"] = None
             continue
