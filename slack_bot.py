@@ -256,12 +256,8 @@ class CovidSlackBot:
         # (This will often be incorrect as GP numbers come in at odd times)
         if new_vax is not None:
             message += f":syringe: {int(code_data['VACC_DOSE_CNT']):,d} doses (+{new_vax:,d})"
-
-            if code_data["VACC_FIRST_DOSE_CNT"] is not None and code_data["VACC_FIRST_DOSE_CNT"] != 0:
-                message += self.format_vax(code_data, "VACC_FIRST_DOSE_CNT", "1st")
-
-            if code_data["VACC_PEOPLE_CNT"] is not None and code_data["VACC_PEOPLE_CNT"] != 0:
-                message += self.format_vax(code_data, "VACC_PEOPLE_CNT", "2nd")
+            message += self.format_vax(code_data, "VACC_FIRST_DOSE_CNT", "1st")
+            message += self.format_vax(code_data, "VACC_PEOPLE_CNT", "2nd")
 
             message += "\n        (This will often be lagging as GP numbers come in at odd times)\n"
 
@@ -274,6 +270,10 @@ class CovidSlackBot:
         return message
 
     def format_vax(self, code_data: Dict, vax_field: str, ordinal: str) -> str:
+        check_vax_field = vax_field + "_" + code_data['POPULATION_BRACKET'];
+        if code_data[check_vax_field] is None or code_data[check_vax_field] == 0:
+            return ""
+
         current_dose = self.vax_to_percentage(code_data, vax_field)
         prev_dose = self.vax_to_percentage(code_data, 'PREV_' + vax_field)
         dose_delta = current_dose - prev_dose
